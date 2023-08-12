@@ -13,6 +13,10 @@
 # include <pcl/visualization/cloud_viewer.h>
 # include <pcl/console/parse.h>
 # include <pcl/filters/passthrough.h>
+//# include <vtkAutoInit.h>
+//VTK_MODULE_INIT(vtkRenderingOpenGL);
+//VTK_MODULE_INIT(vtkInteractionStyle);
+
 // inherit PointXYZRGB and add new feature
 struct MyPoint : public pcl::PointXYZRGB {
     //int label = 0; // center point / boundary point / noise point

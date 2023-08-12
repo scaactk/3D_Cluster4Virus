@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
     std::cout << "Begin reading PCL data" << std::endl;
 
     // "::Ptr" here is Type Alias 别名
-    // Ptr是共享指针类型
+    // Ptr是共享指针类型, 智能指针, 自动gc
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZRGB>);
 
@@ -23,8 +23,8 @@ int main(int argc, char **argv) {
     }
     cout << "there are " << cloud->points.size()<<" points before filtering." << endl;
 
-    pcl::PointXYZRGB minPt, maxPt;
-    pcl::getMinMax3D(*cloud, minPt, maxPt);
+//    pcl::PointXYZRGB minPt, maxPt;
+//    pcl::getMinMax3D(*cloud, minPt, maxPt);
 
     // filter
     pcl::PassThrough<pcl::PointXYZRGB> pass;
@@ -32,11 +32,13 @@ int main(int argc, char **argv) {
 
     pass.setFilterFieldName("x");
     pass.setFilterLimits(0.0, 5000.0);
+    // pass.setNegative(true); // keep reversed points
     pass.filter(* cloud_filtered);
     std::cout <<"aaaa";
 
     pass.setFilterFieldName("y");
     pass.setFilterLimits(0.0, 5000.0);
+    // pass.setNegative(true);
     pass.filter(* cloud_filtered);
 
     std::cout << "Filtered point cloud size: " << cloud_filtered->size() << " data points." << std::endl;
@@ -47,9 +49,9 @@ int main(int argc, char **argv) {
     float min_x = std::numeric_limits<float>::max();
     float min_y = std::numeric_limits<float>::max();
     float min_z = std::numeric_limits<float>::max();
-    float max_x = std::numeric_limits<float>::min();
-    float max_y = std::numeric_limits<float>::min();
-    float max_z = std::numeric_limits<float>::min();
+    float max_x = -std::numeric_limits<float>::max();
+    float max_y = -std::numeric_limits<float>::max();
+    float max_z = -std::numeric_limits<float>::max();
 
     float sum_x = 0;
     float sum_y = 0;
@@ -92,7 +94,7 @@ int main(int argc, char **argv) {
     std::cout << "Y coordinate - Min: " << min_y << ", Max: " << max_y << ", Mean: " << mean_y << std::endl;
     std::cout << "Z coordinate - Min: " << min_z << ", Max: " << max_z << ", Mean: " << mean_z << std::endl;
 
-    int num = dbscan(*myCloud, 20.0, 3);
+    size_t num = dbscan(*myCloud, 20.0, 3);
     std::cout<< "cluster size is "<< num << std::endl;
 
 
@@ -107,6 +109,9 @@ int main(int argc, char **argv) {
 //
 //    while (!viewer.wasStopped())
 //        viewer.spinOnce(100);
-
+    std::cout<<"sb"<<std::endl;
+    std::cout<<"sb"<<std::endl;
+    std::cout<<"sb"<<std::endl;
+    std::cout<<"sb"<<std::endl;
     return 0;
 }

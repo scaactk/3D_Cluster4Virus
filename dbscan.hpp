@@ -79,7 +79,7 @@ bool expand_cluster(MyPointCloud &cloud, size_t query, int clusterID, float_t ep
 }
 
 
-int dbscan(MyPointCloud & cloud, float_t eps, int min) {
+size_t dbscan(MyPointCloud & cloud, float_t eps, int min) {
     int clusterID = 1;
 
     //std::vector<int> output(size); // if only given size, all element for int vector is 0
