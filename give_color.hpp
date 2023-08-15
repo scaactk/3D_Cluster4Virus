@@ -12,7 +12,7 @@
 bool single_color(MyPointCloud &cloud, const size_t queryID){
     std::random_device rd;
     std::mt19937 gen(rd()); // random engine
-    std::uniform_int_distribution<int> dis(0,256); //define an uniform distribution
+    std::uniform_int_distribution<int> dis(50,256); //define an uniform distribution
     uint8_t R = dis(gen);
     uint8_t G = dis(gen);
     uint8_t B = dis(gen);
@@ -20,12 +20,12 @@ bool single_color(MyPointCloud &cloud, const size_t queryID){
     for (size_t i=0; i < cloud.size(); i++){
         if (cloud.points[i].clusterID == queryID){
             flag = true;
-//            cloud.points[i].r = R;
-//            cloud.points[i].g = G;
-//            cloud.points[i].b = B;
-            cloud.points[i].r = 255;
-            cloud.points[i].g = 255;
-            cloud.points[i].b = 255;
+            cloud.points[i].r = R;
+            cloud.points[i].g = G;
+            cloud.points[i].b = B;
+//            cloud.points[i].r = 255;
+//            cloud.points[i].g = 255;
+//            cloud.points[i].b = 255;
         }
     }
     if (flag==false){
