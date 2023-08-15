@@ -1,22 +1,23 @@
 //
 // Created by scaactk on 8/6/2023.
 //
-# include "dbscan.hpp"
+#include "dbscan.hpp"
+#include "give_color.hpp"
 
 int main(int argc, char **argv) {
     std::cout << "Begin reading PCL data" << std::endl;
 
     // "::Ptr" here is Type Alias 别名
     // Ptr是共享指针类型, 智能指针, 自动gc
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZRGB>);
+    MyPointCloud::Ptr cloud(new MyPointCloud);
+    MyPointCloud::Ptr cloud_filtered(new MyPointCloud);
 
     std::string dir = R"(C:\Users\scaactk\Desktop\test\1\)";
     std::string filename = "1.pcd";
 
     // pcl is namespace, io is sub-namespace, loadPCDFile is function inside
     // *cloud 传参，& cloud接收 "通过引用传递指针"
-    if (pcl::io::loadPCDFile<pcl::PointXYZRGB>((dir + filename), *cloud) == -1) {
+    if (pcl::io::loadPCDFile<PointT>((dir + filename), *cloud) == -1) {
         // load file
         PCL_ERROR ("Couldn't read PCD file \n");
         return (-1);
@@ -27,14 +28,15 @@ int main(int argc, char **argv) {
 //    pcl::getMinMax3D(*cloud, minPt, maxPt);
 
     // filter
-    pcl::PassThrough<pcl::PointXYZRGB> pass;
+    pcl::PassThrough<PointT> pass;
     pass.setInputCloud(cloud);
 
+    // problems here x is not filtered
     pass.setFilterFieldName("x");
     pass.setFilterLimits(0.0, 5000.0);
     // pass.setNegative(true); // keep reversed points
     pass.filter(* cloud_filtered);
-    std::cout <<"aaaa";
+    //std::cout <<"aaaa";
 
     pass.setFilterFieldName("y");
     pass.setFilterLimits(0.0, 5000.0);
@@ -57,20 +59,10 @@ int main(int argc, char **argv) {
     float sum_y = 0;
     float sum_z = 0;
 
-    // convert PointRGBXYZ into MyPoint
-    MyPointCloud::Ptr myCloud(new MyPointCloud);
-    myCloud->resize(cloud_filtered->size());
-
     // size_t 无符号整数， 在大多数平台上，std::size_t 的范围上限大约是 2^32 - 1 或 2^64 - 1，即为不会溢出，相比于 int i=0
     for (size_t i=0; i<cloud_filtered->size(); i++){
         // 箭头左边必须是指针；点左边必须是实体
-        myCloud->points[i].x = cloud_filtered->points[i].x;
-        myCloud->points[i].y = cloud_filtered->points[i].y;
-        myCloud->points[i].z = cloud_filtered->points[i].z;
-        myCloud->points[i].r = cloud_filtered->points[i].r;
-        myCloud->points[i].g = cloud_filtered->points[i].g;
-        myCloud->points[i].b = cloud_filtered->points[i].b;
-        myCloud->points[i].clusterID = 0;
+        cloud_filtered->points[i].clusterID = 0;
 
         min_x = std::min(min_x, cloud_filtered->points[i].x);
         min_y = std::min(min_x, cloud_filtered->points[i].y);
@@ -85,30 +77,38 @@ int main(int argc, char **argv) {
     }
 
 
-    printf("Loaded %d data points from PCD\n", myCloud->width * myCloud->height);
+    printf("Loaded %d data points from PCD\n", cloud_filtered->width * cloud_filtered->height);
 
-    float mean_x = sum_x / myCloud->size();
-    float mean_y = sum_y / myCloud->size();
-    float mean_z = sum_z / myCloud->size();
+    float mean_x = sum_x / cloud_filtered->size();
+    float mean_y = sum_y / cloud_filtered->size();
+    float mean_z = sum_z / cloud_filtered->size();
     std::cout << "X coordinate - Min: " << min_x << ", Max: " << max_x << ", Mean: " << mean_x << std::endl;
     std::cout << "Y coordinate - Min: " << min_y << ", Max: " << max_y << ", Mean: " << mean_y << std::endl;
     std::cout << "Z coordinate - Min: " << min_z << ", Max: " << max_z << ", Mean: " << mean_z << std::endl;
 
-    size_t num = dbscan(*myCloud, 20.0, 3);
-    std::cout<< "cluster size is "<< num << std::endl;
+    size_t clusterNumber = dbscan(*cloud_filtered, 100.0, 3);
+    std::cout<< "cluster size is "<< clusterNumber << std::endl;
+
+    size_t coloredNumber = give_color(*cloud_filtered, clusterNumber);
+    for (size_t i=0; i<cloud_filtered->size(); i++){
+        if(cloud_filtered->points[i].clusterID==1){
+            cout<<"color: "<< cloud_filtered->points[i].r<<endl;
+        }
+    }
 
 
 
-//    pcl::visualization::PCLVisualizer viewer("Cloud viewer");
-//
-//    // pos: the position of camera, view: center of view, up: view direction
-//    viewer.setCameraPosition(25000, 25000, 100000,25000, 25000 , 1000, 0, 0 , 0);
-//    viewer.addPointCloud<pcl::PointXYZRGB> (cloud, "sample cloud");
-//    viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "sample cloud");
-//
-//
-//    while (!viewer.wasStopped())
-//        viewer.spinOnce(100);
+    pcl::visualization::PCLVisualizer viewer("Cloud viewer"); //创建窗口
+
+    // pos: the position of camera, view: center of view, up: view direction
+    viewer.setCameraPosition(25000, 25000, 100000,25000, 25000 , 1000, 0, 0 , 0);
+    pcl::visualization::PointCloudColorHandlerRGBField<PointT> rgb(cloud); //创建一个颜色处理对象PointCloudColorHandlerRGB，PCLVisualizer类利用这样的对象显示自定义颜色数据，在这个示例中，PointCloudColorHandlerRGB对象得到每个点云的RGB颜色字段
+    viewer.addPointCloud<PointT> (cloud_filtered, "sample cloud");
+    viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "sample cloud");
+
+
+    while (!viewer.wasStopped())
+        viewer.spinOnce(100);
     std::cout<<"sb"<<std::endl;
     std::cout<<"sb"<<std::endl;
     std::cout<<"sb"<<std::endl;

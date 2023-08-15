@@ -1,7 +1,7 @@
-# include "PCL_TEST_HEADER.h"
-# include <cmath>
-# include "algorithm"
-# include "vector"
+#include "PCL_TEST_HEADER.h"
+#include <cmath>
+#include "algorithm"
+#include "vector"
 
 const static inline float_t distance(float_t x1, float_t y1, float_t z1, float_t x2, float_t y2, float_t z2) {
     float_t dx = x2 - x1;
