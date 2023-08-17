@@ -33,13 +33,14 @@ int main(int argc, char **argv) {
 
     // problems here x is not filtered
     pass.setFilterFieldName("x");
-    pass.setFilterLimits(0.0, 5000.0);
+    pass.setFilterLimits(0.0, 10000.0);
     // pass.setNegative(true); // keep reversed points
     pass.filter(* cloud_filtered);
     //std::cout <<"aaaa";
 
+    pass.setInputCloud(cloud_filtered);
     pass.setFilterFieldName("y");
-    pass.setFilterLimits(0.0, 5000.0);
+    pass.setFilterLimits(0.0, 10000.0);
     // pass.setNegative(true);
     pass.filter(* cloud_filtered);
 
@@ -101,10 +102,10 @@ int main(int argc, char **argv) {
     pcl::visualization::PCLVisualizer viewer("Cloud viewer"); //创建窗口
     viewer.setBackgroundColor(0.1, 0.1, 0.1);
     // pos: the position of camera, view: center of view, up: view direction
-    viewer.setCameraPosition(25000, 25000, 100000,25000, 25000 , 1000, 0, 0 , 0);
+    viewer.setCameraPosition(mean_x, mean_y, 100000,mean_x, mean_y , 1000, 0, 0 , 0);
     pcl::visualization::PointCloudColorHandlerRGBField<PointT> rgb(cloud_filtered); //创建一个颜色处理对象PointCloudColorHandlerRGB，PCLVisualizer类利用这样的对象显示自定义颜色数据，在这个示例中，PointCloudColorHandlerRGB对象得到每个点云的RGB颜色字段
     viewer.addPointCloud<PointT> (cloud_filtered, "sample cloud");
-    viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "sample cloud");
+    viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
 
 
     while (!viewer.wasStopped())
