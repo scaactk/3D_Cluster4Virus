@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
     MyPointCloud::Ptr cloud(new MyPointCloud);
     MyPointCloud::Ptr cloud_filtered(new MyPointCloud);
 
-    std::string dir = R"(C:\Users\scaactk\Desktop\test\1\)";
+    std::string dir = R"(C:\Users\tjut_\Desktop\20230818_VLP samples\)";
     std::string filename = "1.pcd";
 
     // pcl is namespace, io is sub-namespace, loadPCDFile is function inside
@@ -33,14 +33,14 @@ int main(int argc, char **argv) {
 
     // problems here x is not filtered
     pass.setFilterFieldName("x");
-    pass.setFilterLimits(0.0, 10000.0);
+    pass.setFilterLimits(0.0, 100000.0);
     // pass.setNegative(true); // keep reversed points
     pass.filter(* cloud_filtered);
     //std::cout <<"aaaa";
 
     pass.setInputCloud(cloud_filtered);
     pass.setFilterFieldName("y");
-    pass.setFilterLimits(0.0, 10000.0);
+    pass.setFilterLimits(0.0, 100000.0);
     // pass.setNegative(true);
     pass.filter(* cloud_filtered);
 

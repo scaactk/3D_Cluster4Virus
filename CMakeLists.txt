@@ -9,6 +9,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable(PCL_test PCL_dbscan.cpp dbscan.hpp PCL_TEST_HEADER.h give_color.hpp)
+add_executable(PCL_test2 convert.cpp)
 
 target_link_libraries (PCL_test ${PCL_LIBRARIES})
 install(TARGETS PCL_test RUNTIME DESTINATION bin)
