@@ -1,64 +1,84 @@
 //
 // Created by tjut_ on 8/25/2023.
 //
-#include <iostream>
-#include <fstream>
 #include <string>
 #include <vector>
-#include <filesystem>
+#include <boost/filesystem.hpp>
+#include <fstream>
+#include <sstream>
+#include "PCL_TEST_HEADER.h"
 
-// 假设你已经包含了PCL库的头文件
+namespace fs = boost::filesystem;
 
-int main() {
-    std::string folderPath = "your_folder_path"; // 文件夹路径
-    std::vector<std::string> fileNames; // 存储符合条件的文件名
+std::string folderPath = "C:\\Users\\scaactk\\Desktop\\20230818_VLP samples";
 
-    // 遍历文件夹，获取以3dlp结尾的文件名
-    for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {
-        if (entry.path().extension() == ".3dlp") {
-            fileNames.push_back(entry.path().string());
+void handle_file(const fs::path& path)
+{
+    // Step 1: First pass over the file to count lines (i.e., data points)
+    std::ifstream infile_count_pass(path.string());
+    std::string line;
+    int point_count = 0;
+    while (std::getline(infile_count_pass, line)){
+        ++point_count;
+    }
+    infile_count_pass.close();
+
+    // Step 2: Then, actually process data
+    std::ifstream infile(path.string());
+    std::ofstream outfile(path.string().substr(0, (path.string().length() - 5)) + ".pcd", ios::out);
+    if(!outfile.is_open())
+    {
+        std::cerr << "Failed to open output file at: " << path.stem().string() + ".pcd" << std::endl;
+        return;
+    }
+    std::cout << path.stem().string() + ".pcd" << endl;
+
+
+    // Write the PCD file's header information
+    outfile << "# .PCD v.7 - Point Cloud Data file format\n"
+            << "VERSION .7\n"
+            << "FIELDS x y z\n"
+            << "SIZE 4 4 4\n"
+            << "TYPE F F F\n"
+            << "COUNT 1 1 1\n"
+            << "WIDTH " << point_count << "\n"  // use the count from the first pass
+            << "HEIGHT 1\n"
+            << "VIEWPOINT 0 0 0 1 0 0 0\n"
+            << "POINTS " << point_count << "\n"  // use the count from the first pass
+            << "DATA ascii\n";
+
+    float x, y, z;
+    while (std::getline(infile, line))
+    {
+        std::istringstream iss(line);
+        if (iss >> x >> y >> z)
+        {
+            // 用tab分隔数据，并写入点云信息到新的pcd文件。
+            outfile << x << "\t" << y << "\t" << z << "\n";
+           // std::cout << x <<endl;
         }
     }
 
-    // 逐个处理文件
-    for (const auto& fileName : fileNames) {
-        std::ifstream file(fileName);
-        if (!file) {
-            std::cerr << "Failed to open file: " << fileName << std::endl;
-            continue;
+    infile.close();
+    outfile.close();
+
+}
+
+int main()
+{
+    fs::path p(folderPath);
+    fs::recursive_directory_iterator begin(p), end;
+    std::vector<fs::directory_entry> v(begin, end);
+
+    //遍历所有文件
+    for (auto& f : v)
+    {
+        // 文件名接口是否符合需求
+        if (f.path().extension() == ".3dlp")
+        {
+            std::cout<<f.path()<<std::endl;
+            handle_file(f.path());
         }
-
-        // 创建PointCloud对象
-        pcl::PointCloud<pcl::PointXYZ> cloud;
-        std::string line;
-
-        // 逐行读取文件内容
-        while (std::getline(file, line)) {
-            std::istringstream iss(line);
-            std::string token;
-            std::vector<double> values;
-
-            // 使用tab符号分隔每列数据
-            while (std::getline(iss, token, '\t')) {
-                // 将前三列数据存储到values向量中
-                if (values.size() < 3) {
-                    values.push_back(std::stod(token));
-                }
-            }
-
-            // 创建PointXYZ对象并添加到PointCloud中
-            if (values.size() >= 3) {
-                pcl::PointXYZ point;
-                point.x = values[0];
-                point.y = values[1];
-                point.z = values[2];
-                cloud.push_back(point);
-            }
-        }
-
-        // 将PointCloud保存为PCD文件
-        pcl::io::savePCDFileASCII("output.pcd", cloud);
-        std::cout << "PCD file saved: output.pcd" << std::endl;
     }
 
     return 0;

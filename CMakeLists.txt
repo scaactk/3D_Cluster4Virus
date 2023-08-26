@@ -1,17 +1,24 @@
 cmake_minimum_required(VERSION 3.25)
-project(PCL_test)
 
-set(CMAKE_CXX_STANDARD 17)
+project(PCL_test)
+set(PROJECT_NAME "PCL_test")
+
+set(CMAKE_CXX_STANDARD 14)
 find_package(PCL REQUIRED)
 
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(PCL_test PCL_dbscan.cpp dbscan.hpp PCL_TEST_HEADER.h give_color.hpp)
-add_executable(PCL_test2 convert.cpp)
+if(${PROJECT_NAME} STREQUAL "PCL_test")
+    add_executable(PCL_test newCluster.cpp dbscan.hpp PCL_TEST_HEADER.h give_color.hpp)
+elseif(${PROJECT_NAME} STREQUAL "PCL_test2")
+    add_executable(PCL_test2 convert.cpp PCL_TEST_HEADER.h)
+else()
+    message("Unknown project name.")
+endif()
 
-target_link_libraries (PCL_test ${PCL_LIBRARIES})
-install(TARGETS PCL_test RUNTIME DESTINATION bin)
+target_link_libraries (${PROJECT_NAME} ${PCL_LIBRARIES})
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 
 

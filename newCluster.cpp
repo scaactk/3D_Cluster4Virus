@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     MyPointCloud::Ptr cloud(new MyPointCloud);
     MyPointCloud::Ptr cloud_filtered(new MyPointCloud);
 
-    std::string dir = R"(C:\Users\tjut_\Desktop\20230818_VLP samples\)";
+    std::string dir = R"(C:\Users\scaactk\Desktop\20230818_VLP samples\)";
     std::string filename = "1.pcd";
 
     // pcl is namespace, io is sub-namespace, loadPCDFile is function inside
