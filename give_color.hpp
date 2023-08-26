@@ -9,6 +9,15 @@
 #include <random>
 #endif //PCL_TEST_GIVE_COLOR_HPP
 
+void generate_color(std::array<uint8_t , 3> &color){
+    std::random_device rd;
+    std::mt19937 gen(rd()); // random engine
+    std::uniform_int_distribution<int> dis(50,256); //define an uniform distribution
+    color[0] = dis(gen);
+    color[1] = dis(gen);
+    color[2] = dis(gen);
+}
+
 bool single_color(MyPointCloud &cloud, const size_t queryID){
     std::random_device rd;
     std::mt19937 gen(rd()); // random engine
@@ -40,6 +49,7 @@ void set_gray(MyPointCloud &cloud){
             cloud.points[i].r = 50;
             cloud.points[i].g = 50;
             cloud.points[i].b = 50;
+            cloud.points[i].a = 50;
         }
     }
 }

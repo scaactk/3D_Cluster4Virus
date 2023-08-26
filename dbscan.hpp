@@ -31,8 +31,8 @@ bool expand_cluster(MyPointCloud &cloud, size_t query, int clusterID, float_t ep
     }
     else {
         // set cluster id
-        for (size_t i = 0; i < local_cluster.size(); i++) {
-            cloud[local_cluster[i]].clusterID = clusterID;
+        for (unsigned long long i : local_cluster) {
+            cloud.points[i].clusterID = clusterID;
         }
         // delete current queried point
         local_cluster.erase(std::remove(local_cluster.begin(), local_cluster.end(), query), local_cluster.end());
@@ -84,7 +84,7 @@ size_t dbscan(MyPointCloud & cloud, float_t eps, int min) {
 
     //std::vector<int> output(size); // if only given size, all element for int vector is 0
     for (size_t i = 0; i < cloud.size(); i++) {
-        if(i%100==0){
+        if (i%100==0){
             std::cout<< "i is "<< i << std::endl;
         }
 

@@ -14,6 +14,8 @@
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/console/parse.h>
 #include <pcl/filters/passthrough.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/octree/octree_search.h>
 //# include <vtkAutoInit.h>
 //VTK_MODULE_INIT(vtkRenderingOpenGL);
 //VTK_MODULE_INIT(vtkInteractionStyle);
@@ -30,7 +32,7 @@
 struct EIGEN_ALIGN16 MyPoint{ //EIGEN_ALIGN16，宏，16字节对齐
     PCL_ADD_POINT4D; // 默认方式，宏，自动定义x,y,z,padding
     PCL_ADD_RGB;
-    int clusterID=0; //旧版本似乎不能直接赋值
+    size_t clusterID=0; //旧版本似乎不能直接赋值
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW //在使用 EIGEN_MAKE_ALIGNED_OPERATOR_NEW 宏时，不需要在结尾添加分号; （混乱
     //宏是一个代码片段的替换，在其展开时会自动包含结尾的分号，为什么前面的宏后面有分号
 };
