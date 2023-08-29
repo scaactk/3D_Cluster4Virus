@@ -6,7 +6,7 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <sstream>
-#include "PCL_TEST_HEADER.h"
+#include "include/PCL_TEST_HEADER.h"
 
 namespace fs = boost::filesystem;
 

@@ -3,15 +3,15 @@
 #include "algorithm"
 #include "vector"
 
-const static inline float_t distance(float_t x1, float_t y1, float_t z1, float_t x2, float_t y2, float_t z2) {
-    float_t dx = x2 - x1;
-    float_t dy = y2 - y1;
-    float_t dz = z2 - z1;
+const static inline float distance(float x1, float y1, float z1, float x2, float y2, float z2) {
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+    float dz = z2 - z1;
     return sqrt(dx * dx + dy * dy + dz * dz);
 }
 
-const inline size_t region_query(const MyPointCloud &cloud, size_t query, std::vector<size_t> &local_cluster, float_t eps) {
-    for (size_t i = 0; i < cloud.size(); i++) {
+const inline int region_query(const MyPointCloud &cloud, int query, std::vector<int> &local_cluster, float eps) {
+    for (int i = 0; i < cloud.size(); i++) {
         if (distance(cloud.points[i].x, cloud.points[i].y, cloud.points[i].z,
                      cloud.points[query].x, cloud.points[query].y, cloud.points[query].z) < eps) {
             local_cluster.push_back(i); // index
@@ -20,10 +20,10 @@ const inline size_t region_query(const MyPointCloud &cloud, size_t query, std::v
     return local_cluster.size();
 }
 
-bool expand_cluster(MyPointCloud &cloud, size_t query, int clusterID, float_t eps, int min) {
-    std::vector<size_t> local_cluster;
+bool expand_cluster(MyPointCloud &cloud, int query, int clusterID, float eps, int min) {
+    std::vector<int> local_cluster;
 
-    size_t local_cluster_size = region_query(cloud, query, local_cluster, eps);
+    int local_cluster_size = region_query(cloud, query, local_cluster, eps);
     if (local_cluster_size < min) {
         // find noise
         cloud.points[query].clusterID = -1;
@@ -41,15 +41,15 @@ bool expand_cluster(MyPointCloud &cloud, size_t query, int clusterID, float_t ep
         while (!local_cluster.empty()) {
 //            std::cout<< "query is "<< query << std::endl;
 //            std::cout<< local_cluster.size()<< std::endl;
-            size_t ptr = local_cluster.front();
-            std::vector<size_t> temp_cluster;
+            int ptr = local_cluster.front();
+            std::vector<int> temp_cluster;
 
             // if new temp_cluster size of current point from local_cluster > min ,,,
             // is this needed? if the current point is on the border
             // answer: yes, this is the requirement of dbscan, the algorithm is defined as this,
             // each point's density is high enough
             if (region_query(cloud, ptr, temp_cluster, eps)> min){
-                for (size_t i=0; i<temp_cluster.size(); i++){
+                for (int i=0; i<temp_cluster.size(); i++){
                     // find new required point
                     // -1 means noise before
                     if (cloud[temp_cluster[i]].clusterID==-1){
@@ -79,11 +79,11 @@ bool expand_cluster(MyPointCloud &cloud, size_t query, int clusterID, float_t ep
 }
 
 
-size_t dbscan(MyPointCloud & cloud, float_t eps, int min) {
+int dbscan(MyPointCloud & cloud, float eps, int min) {
     int clusterID = 1;
 
     //std::vector<int> output(size); // if only given size, all element for int vector is 0
-    for (size_t i = 0; i < cloud.size(); i++) {
+    for (int i = 0; i < cloud.size(); i++) {
         if (i%100==0){
             std::cout<< "i is "<< i << std::endl;
         }

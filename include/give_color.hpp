@@ -18,7 +18,7 @@ void generate_color(std::array<uint8_t , 3> &color){
     color[2] = dis(gen);
 }
 
-bool single_color(MyPointCloud &cloud, const size_t queryID){
+bool single_color(MyPointCloud &cloud, const int queryID){
     std::random_device rd;
     std::mt19937 gen(rd()); // random engine
     std::uniform_int_distribution<int> dis(50,256); //define an uniform distribution
@@ -26,7 +26,7 @@ bool single_color(MyPointCloud &cloud, const size_t queryID){
     uint8_t G = dis(gen);
     uint8_t B = dis(gen);
     bool flag = false;
-    for (size_t i=0; i < cloud.size(); i++){
+    for (int i=0; i < cloud.size(); i++){
         if (cloud.points[i].clusterID == queryID){
             flag = true;
             cloud.points[i].r = R;
@@ -44,8 +44,8 @@ bool single_color(MyPointCloud &cloud, const size_t queryID){
 }
 
 void set_gray(MyPointCloud &cloud){
-    for (size_t i=0; i<cloud.size(); i++){
-        if(cloud.points[i].clusterID==-1){
+    for (int i=0; i<cloud.size(); i++){
+        if(cloud.points[i].clusterID<0){ //-1 as noise point
             cloud.points[i].r = 50;
             cloud.points[i].g = 50;
             cloud.points[i].b = 50;
@@ -54,9 +54,9 @@ void set_gray(MyPointCloud &cloud){
     }
 }
 
-size_t give_color(MyPointCloud &cloud, int clusterNumber){
-    size_t count = 0;
-    for (size_t i=0; i<cloud.size(); i++){
+int give_color(MyPointCloud &cloud, int clusterNumber){
+    int count = 0;
+    for (int i=0; i<cloud.size(); i++){
         if(single_color(cloud, i+1)){
             count++;
         }

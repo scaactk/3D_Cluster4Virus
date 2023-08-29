@@ -11,19 +11,20 @@
 #include "algorithm"
 #include "vector"
 #include <pcl/kdtree/kdtree_flann.h>
+#include "give_color.hpp"
 #include <iostream>
 
 #endif //PCL_TEST_DBSCAN_KDTREE_HPP
 
 
-bool expand_cluster(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFlann, size_t query, size_t clusterID,
-                    float_t eps, int min, std::array<uint8_t, 3> color) {
+static bool expand_cluster(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFlann, int query, int clusterID,
+                    float eps, int min, std::array<uint8_t, 3> color) {
 
     std::vector<int> pointIdxRadiusSearch;
-    std::vector<float_t> pointRadiusSquaredDistance;
+    std::vector<float> pointRadiusSquaredDistance;
 
-    // include query point itself
-    if (treeFlann.radiusSearch(query, eps, pointIdxRadiusSearch, pointRadiusSquaredDistance, 0) < min) {
+    // radiusSearch result include query point itself
+    if (treeFlann.radiusSearch(query, eps, pointIdxRadiusSearch, pointRadiusSquaredDistance, 0) <= min) {
         // find noise
         cloud.points[query].clusterID = -1;
         return false;
@@ -42,10 +43,10 @@ bool expand_cluster(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFla
 
         // check other points which have been added in this cluster
         while (!pointIdxRadiusSearch.empty()) {
-            size_t ptr = pointIdxRadiusSearch.front();
+            int ptr = pointIdxRadiusSearch.front();
             std::vector<int> temp_idx;
-            std::vector<float_t> temp_dis;
-            if (treeFlann.radiusSearch(ptr, eps, temp_idx, temp_dis, 0) > min) {
+            std::vector<float> temp_dist;
+            if (treeFlann.radiusSearch(ptr, eps, temp_idx, temp_dist, 0) > min) {
                 for (int i : temp_idx){
                     // find new required point
                     // -1 means noise before
@@ -80,12 +81,12 @@ bool expand_cluster(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFla
 }
 
 // kdtree.radiusSearch(searchPoint1, radius, pointIdxRadiusSearch, pointRadiusSquaredDistance)
-size_t dbscan_kdtree(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFlann, float_t eps, int min) {
-    size_t clusterID = 1;
+int dbscan_kdtree(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFlann, float eps, int min) {
+    int clusterID = 1;
     std::array<uint8_t, 3> color{};
     generate_color(color);
 
-    for (size_t i = 0; i < cloud.size(); i++) {
+    for (int i = 0; i < cloud.size(); i++) {
         if (i % 100 == 0) {
             std::cout << "i is " << i << std::endl;
         }
