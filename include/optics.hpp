@@ -111,11 +111,51 @@ bool findCluster(MyPointCloud &cloud, const ::pcl::KdTreeFLANN<PointT> &treeFlan
                                            pointIdxRadiusSearch.end());
             }
 
-
         }
 
 
     }
+    return true;
+}
+
+static int extract_id(MyPointCloud &cloud, const std::vector<int> &ordered_sequence, const std::vector<float> &result_distance, float filter){
+    int clusterID = 0;
+    bool pre = true;
+    bool cur = true;
+    for (int i=0; i<result_distance.size(); i++){
+        if (result_distance[i] < filter){
+            cur = true;
+            if (cur != pre){
+                clusterID += 1;
+            }
+            if (i==0){
+                clusterID += 1;
+            }
+            cloud.points[ordered_sequence[i]].clusterID = clusterID;
+            pre = cur;
+        }
+        else{
+            cur = false;
+            cloud.points[ordered_sequence[i]].clusterID = -1; // noise point
+            pre = cur;
+        }
+    }
+    return clusterID;
+}
+
+static bool write2file(const std::string& folderPath, const std::vector<int> &ordered_sequence, const std::vector<float> &result_distance){
+    std::ofstream file(folderPath+"/output.csv");
+    if (!file.is_open()) {
+        std::cout << "Unable to open file";
+        return false;
+    }
+
+    for (size_t i = 0; i < ordered_sequence.size(); ++i) {
+        // std::sqrt(result_distance[i])
+        file << ordered_sequence[i] << "," << result_distance[i] << "\n";
+    }
+
+    file.close();
     return true;
 }
 
@@ -145,23 +185,14 @@ int optics(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFlann, float
 //    std::cout << non_zero_count << std::endl;
     std::vector<float> result_distance;
     for (int i : ordered_sequence){
-        result_distance.push_back(ordered_distance[i]);
+        result_distance.push_back(std::sqrt(ordered_distance[i]));
     }
 
-    std::string folderPath = "C:\\Users\\scaactk\\Desktop\\20230818_VLP samples";
-    std::ofstream file(folderPath+"/output.csv");
+    // 赋值id
+    int clusterNumber = extract_id(cloud, ordered_sequence, result_distance, 50);
 
-    if (!file.is_open()) {
-        std::cout << "Unable to open file";
-        return 1;
-    }
+    std::string folderPath = "C:\\Users\\tjut_\\Desktop\\20230818_VLP samples";
+    write2file(folderPath, ordered_sequence, result_distance);
 
-    for (size_t i = 0; i < ordered_sequence.size(); ++i) {
-        // std::sqrt(result_distance[i])
-        file << ordered_sequence[i] << "," << result_distance[i] << "\n";
-    }
-
-    file.close();
-
-    return ordered_sequence.size();
+    return clusterNumber;
 }
