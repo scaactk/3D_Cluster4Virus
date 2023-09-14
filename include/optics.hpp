@@ -159,7 +159,7 @@ static bool write2file(const std::string& folderPath, const std::vector<int> &or
     return true;
 }
 
-int optics(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFlann, float_t eps, int min) {
+int optics(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFlann, float eps, int min) {
 
     //生成容器时，同时指定元素个数，就能够减少空间额外分配的次数
 //    std::vector<float> core_dists(cloud.size());

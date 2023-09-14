@@ -11,7 +11,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 if(${PROJECT_NAME} STREQUAL "PCL_test")
-    add_executable(PCL_test newCluster.cpp include/dbscan.hpp include/PCL_TEST_HEADER.h include/give_color.hpp include/optics.hpp include/statistics.hpp)
+    add_executable(PCL_test newCluster.cpp include/dbscan.hpp include/PCL_TEST_HEADER.h include/give_color.hpp include/statistics.hpp include/optics_new.hpp)
 elseif(${PROJECT_NAME} STREQUAL "PCL_test2")
     add_executable(PCL_test2 convert.cpp include/PCL_TEST_HEADER.h)
 else()

@@ -5,6 +5,7 @@
 #include "include/dbscan_kdtree.hpp"
 #include "include/optics.hpp"
 #include "include/statistics.hpp"
+#include "include/optics_new.hpp"
 
 int main(int argc, char **argv) {
     std::cout << "Begin reading PCL data" << std::endl;
@@ -14,8 +15,8 @@ int main(int argc, char **argv) {
     MyPointCloud::Ptr cloud(new MyPointCloud);
     MyPointCloud::Ptr cloud_filtered(new MyPointCloud);
 
-    std::string dir = R"(C:\Users\tjut_\Desktop\20230818_VLP samples\)";
-    std::string filename = "1.pcd";
+    std::string dir = R"(C:\Users\scaactk\Desktop\20230818_VLP samples\)";
+    std::string filename = "4.pcd";
 
     // pcl is namespace, io is sub-namespace, loadPCDFile is function inside
     // *cloud 传参，& cloud接收 "通过引用传递指针"
@@ -58,7 +59,7 @@ int main(int argc, char **argv) {
 
 //    int clusterNumber = dbscan(*cloud_filtered, 100.0, 4);
     //int clusterNumber = dbscan_kdtree(*cloud_filtered, kdtree, 30, 4);
-    int clusterNumber = optics(*cloud_filtered, kdtree, 2000, 10);
+    int clusterNumber = optics_new(*cloud_filtered, kdtree, 1000, 10, dir);
     std::cout<< "Cluster NUmber is "<< clusterNumber << std::endl;
 
     std::cout << "Start giving color" << std::endl;
@@ -91,4 +92,42 @@ int main(int argc, char **argv) {
     std::cout << "sb" << std::endl;
     std::cout << "sb" << std::endl;
     return 0;
+
+
+
+//------------------------ time test---------------//
+//    // 创建一个PointCloud对象
+//    MyPointCloud::Ptr cloud(new MyPointCloud);
+//
+//    // 生成100,000个随机点
+//    std::random_device rd;
+//    std::mt19937 gen(rd()); // random engine
+//    int m = 10000;
+//    std::uniform_real_distribution<float> dis(0,10*m); //define an uniform distribution
+//
+//    const int num_points = 100*m;
+//    for (int i = 0; i < num_points; ++i)
+//    {
+//        PointT point;
+//        point.x = dis(gen);
+//        point.y = dis(gen);
+//        point.z = dis(gen);
+//        cloud->push_back(point);
+//    }
+//
+//
+//    auto start = std::chrono::high_resolution_clock::now();
+//    pcl::KdTreeFLANN<PointT> kdtree;
+//    kdtree.setInputCloud(cloud);
+//    dbscan_kdtree(*cloud,kdtree, 2 * m, 4);
+//    // 获取当前时间点
+//    auto end = std::chrono::high_resolution_clock::now();
+//
+//    // 计算时间差
+//    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+//
+//    // 输出运行时间（微秒）
+//    std::cout << "Time taken by function: " << duration.count() / 1000 << " microseconds" << std::endl;
+//
+//    return 0;
 }
