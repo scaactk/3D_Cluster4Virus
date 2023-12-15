@@ -15,8 +15,8 @@ int main(int argc, char **argv) {
     MyPointCloud::Ptr cloud(new MyPointCloud);
     MyPointCloud::Ptr cloud_filtered(new MyPointCloud);
 
-    std::string dir = R"(C:\Users\scaactk\Desktop\20230818_VLP samples\)";
-    std::string filename = "4.pcd";
+    std::string dir = R"(C:\Users\scaactk\Desktop\Paper\)";
+    std::string filename = "20230828-1QW-2-crop_small.pcd";
 
     // pcl is namespace, io is sub-namespace, loadPCDFile is function inside
     // *cloud 传参，& cloud接收 "通过引用传递指针"
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
 
 
 //    int clusterNumber = dbscan(*cloud_filtered, 100.0, 4);
-    //int clusterNumber = dbscan_kdtree(*cloud_filtered, kdtree, 30, 4);
+//    int clusterNumber = dbscan_kdtree(*cloud_filtered, kdtree, 100, 4);
     int clusterNumber = optics_new(*cloud_filtered, kdtree, 1000, 10, dir);
     std::cout<< "Cluster NUmber is "<< clusterNumber << std::endl;
 

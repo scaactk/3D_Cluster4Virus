@@ -95,6 +95,20 @@ static bool write2file_new(const std::string& folderPath, const std::vector<int>
     file.close();
     return true;
 }
+static bool write2file_idx_point(MyPointCloud &cloud, const std::string& folderPath, const std::vector<int> &ordered_sequence, const std::vector<float> &output_dist){
+    std::ofstream file(folderPath+"/idx_point.csv");
+    if(!file.is_open()){
+        std::cout << "Unable to open file";
+        return false;
+    }
+
+    for(size_t i=0; i < ordered_sequence.size(); ++i){
+        file << ordered_sequence[i] << "," << output_dist[i] << ","
+        << cloud.points[ordered_sequence[i]].x << ","
+        << cloud.points[ordered_sequence[i]].y << ","
+        << cloud.points[ordered_sequence[i]].z << "\n";
+    }
+}
 
 int optics_new(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFlann, float eps, int min, const std::string& folderPath) {
     eps = eps * eps;
@@ -150,8 +164,9 @@ int optics_new(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFlann, f
     }
     std::cout << result_distance.size() << std::endl;
 
-    write2file_new(folderPath, ordered_sequence, result_distance);
-    int cluster_number = extract_id_new(cloud, ordered_sequence, result_distance, 30);
+    // write2file_new(folderPath, ordered_sequence, result_distance);
+    write2file_idx_point(cloud, folderPath, ordered_sequence, result_distance);
+    int cluster_number = extract_id_new(cloud, ordered_sequence, result_distance, 1000);
 
     return cluster_number;
 }
