@@ -15,8 +15,8 @@ int main(int argc, char **argv) {
     MyPointCloud::Ptr cloud(new MyPointCloud);
     MyPointCloud::Ptr cloud_filtered(new MyPointCloud);
 
-    std::string dir = R"(C:\Users\scaactk\Desktop\Paper\)";
-    std::string filename = "20230828-1QW-2-crop_small.pcd";
+    std::string dir = R"(C:\Users\scaactk\Desktop\)";
+    std::string filename = "Red.pcd";
 
     // pcl is namespace, io is sub-namespace, loadPCDFile is function inside
     // *cloud 传参，& cloud接收 "通过引用传递指针"
@@ -59,13 +59,38 @@ int main(int argc, char **argv) {
 
 //    int clusterNumber = dbscan(*cloud_filtered, 100.0, 4);
 //    int clusterNumber = dbscan_kdtree(*cloud_filtered, kdtree, 100, 4);
-    int clusterNumber = optics_new(*cloud_filtered, kdtree, 1000, 10, dir);
-    std::cout<< "Cluster NUmber is "<< clusterNumber << std::endl;
+    std::tuple<std::vector<int>, std::vector<float>> order_result = optics_new(*cloud_filtered, kdtree, 1000, 4, dir);
+    float filter = 0;
+    std::cout << "input filter" << endl;
+    while(std::cin >> filter){
+        int clusterNumber = extract_id_new(*cloud_filtered, std::get<0>(order_result), std::get<1>(order_result), filter);
+        std::cout<< "Cluster NUmber is "<< clusterNumber << std::endl;
 
-    std::cout << "Start giving color" << std::endl;
-    set_gray(*cloud_filtered);
-    int coloredNumber = give_color(*cloud_filtered, clusterNumber);
-    std::cout << "Finish giving color" << std::endl;
+        std::cout << "Start giving color" << std::endl;
+        set_gray(*cloud_filtered);
+        int coloredNumber = give_color(*cloud_filtered, clusterNumber);
+        std::cout << "Finish giving color" << std::endl;
+
+
+        pcl::visualization::PCLVisualizer viewer("Cloud viewer"); //创建窗口
+        viewer.addCoordinateSystem(1000, std::get<0>(cloud_center), std::get<1>(cloud_center), std::get<2>(cloud_center));
+        viewer.setBackgroundColor(0.1, 0.1, 0.1);
+        // pos: the position of camera, view: center of view, up: view direction
+        viewer.setCameraPosition(std::get<0>(cloud_center), std::get<1>(cloud_center), 10000, std::get<0>(cloud_center),
+                                 std::get<1>(cloud_center), 1000, 0, 0, 0);
+        pcl::visualization::PointCloudColorHandlerRGBField<PointT> rgb(
+                cloud_filtered); //创建一个颜色处理对象PointCloudColorHandlerRGB，PCLVisualizer类利用这样的对象显示自定义颜色数据，在这个示例中，PointCloudColorHandlerRGB对象得到每个点云的RGB颜色字段
+        viewer.addPointCloud<PointT>(cloud_filtered, "sample cloud");
+        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
+
+
+        while (!viewer.wasStopped())
+            viewer.spinOnce(100);
+
+        std::cout << "input new filter value" << endl;
+    }
+
+
 //    for (int i=0; i<cloud_filtered->size(); i++){
 //        if(cloud_filtered->points[i].clusterID==1){
 //            cout<<"color: "<< cloud_filtered->points[i].rgb<<endl;
@@ -74,19 +99,7 @@ int main(int argc, char **argv) {
 
 
 
-    pcl::visualization::PCLVisualizer viewer("Cloud viewer"); //创建窗口
-    viewer.setBackgroundColor(0.1, 0.1, 0.1);
-    // pos: the position of camera, view: center of view, up: view direction
-    viewer.setCameraPosition(std::get<0>(cloud_center), std::get<1>(cloud_center), 10000, std::get<0>(cloud_center),
-                             std::get<1>(cloud_center), 1000, 0, 0, 0);
-    pcl::visualization::PointCloudColorHandlerRGBField<PointT> rgb(
-            cloud_filtered); //创建一个颜色处理对象PointCloudColorHandlerRGB，PCLVisualizer类利用这样的对象显示自定义颜色数据，在这个示例中，PointCloudColorHandlerRGB对象得到每个点云的RGB颜色字段
-    viewer.addPointCloud<PointT>(cloud_filtered, "sample cloud");
-    viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
 
-
-    while (!viewer.wasStopped())
-        viewer.spinOnce(100);
     std::cout << "sb" << std::endl;
     std::cout << "sb" << std::endl;
     std::cout << "sb" << std::endl;

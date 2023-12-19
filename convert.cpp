@@ -10,7 +10,7 @@
 
 namespace fs = boost::filesystem;
 
-std::string folderPath = "C:\\Users\\scaactk\\Desktop\\Paper";
+std::string folderPath = "C:\\Users\\scaactk\\Desktop\\20231123";
 
 void handle_file(const fs::path& path)
 {
