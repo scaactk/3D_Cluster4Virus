@@ -1,5 +1,6 @@
 //
 // Created by tjut_ on 8/25/2023.
+// this code is use for convert .3dlp data from SMLM to .pcd format that can be used in PointCloud
 //
 #include <string>
 #include <vector>
@@ -10,6 +11,7 @@
 
 namespace fs = boost::filesystem;
 
+// path for input, custom define
 std::string folderPath = "C:\\Users\\scaactk\\Desktop\\20231123";
 
 void handle_file(const fs::path& path)
@@ -53,7 +55,7 @@ void handle_file(const fs::path& path)
         std::istringstream iss(line);
         if (iss >> x >> y >> z)
         {
-            // 用tab分隔数据，并写入点云信息到新的pcd文件。
+            // Separate the data by tab and write the point cloud to new pcd file
             outfile << x << "\t" << y << "\t" << z << "\n";
            // std::cout << x <<endl;
         }
@@ -70,10 +72,10 @@ int main()
     fs::recursive_directory_iterator begin(p), end;
     std::vector<fs::directory_entry> v(begin, end);
 
-    //遍历所有文件
+    //iterate through all files
     for (auto& f : v)
     {
-        // 文件名接口是否符合需求
+        // check the extension of file
         if (f.path().extension() == ".3dlp")
         {
             std::cout<<f.path()<<std::endl;

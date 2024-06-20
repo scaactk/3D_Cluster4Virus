@@ -1,5 +1,6 @@
 //
 // Created by scaactk on 8/26/2023.
+// old version code of OPTICS, not use now
 //
 #ifndef PCL_TEST_OPTICS_HPP
 #define PCL_TEST_OPTICS_HPP
@@ -12,17 +13,17 @@
 
 
 static inline void sortIdxDist(std::vector<int> &pointIdxRadiusSearch, std::vector<float> &pointRadiusSquaredDistance) {
-    // 创建一个索引向量，用于排序, 保持pointIdx和pointDist的同步
+    // create an index vector for sorting and keep pointIdx and pointDist in sync
     std::vector<int> idx(pointRadiusSquaredDistance.size());
     std::iota(idx.begin(), idx.end(), 0);
 
-    // 使用自定义的比较函数进行排序
+    // use a custom sorting methods
     std::sort(idx.begin(), idx.end(),
               [&pointRadiusSquaredDistance](int i1, int i2) {
                   return pointRadiusSquaredDistance[i1] < pointRadiusSquaredDistance[i2]; // 升序
               });
 
-    // 使用排序后的索引向量来获取排序后的结果
+    // Get the sorted result by sorted index
     std::vector<int> sortedIndices(pointIdxRadiusSearch.size());
     std::vector<float> sortedDistances(pointRadiusSquaredDistance.size());
     for (int i = 0; i < idx.size(); ++i) {
@@ -44,7 +45,7 @@ bool findCluster(MyPointCloud &cloud, const ::pcl::KdTreeFLANN<PointT> &treeFlan
     std::vector<float> pointRadiusSquaredDistance; // 平方和
     if (treeFlann.radiusSearch(query, eps, pointIdxRadiusSearch, pointRadiusSquaredDistance, 0) <= min) {
         // find noise
-        // 噪声点如何定义 reachable distance?
+        // how to define the reachable distance for noise point?
         ordered_sequence.push_back(query);
         ordered_distance[query] = eps*eps;
         processed[query] = true;
@@ -58,7 +59,7 @@ bool findCluster(MyPointCloud &cloud, const ::pcl::KdTreeFLANN<PointT> &treeFlan
             if (pointRadiusSquaredDistance[i] <= core_dist) { //核心圈内，自身也算
                 // std::cout<<"aaa"<<std::endl;
                 ordered_distance[pointIdxRadiusSearch[i]] = core_dist;
-            } else { // 当前核心的最小核心圈外
+            } else { // Outside the minimum core circle of the current core
                 //std::cout<<"bbb"<<std::endl;
                 ordered_distance[pointIdxRadiusSearch[i]] = pointRadiusSquaredDistance[i];
             }
@@ -78,14 +79,14 @@ bool findCluster(MyPointCloud &cloud, const ::pcl::KdTreeFLANN<PointT> &treeFlan
             std::vector<int> temp_idx;
             std::vector<float> temp_dist;
 
-            // 无论当前最近的点是不是核心点，都输出到ordered_sequence中
-            // 但是要check这个点是不是在之前的一次 "大搜索->findCluster外的循环" 中已经被处理了
+            // no matter the closest point is a core point, output to the ordered_sequence
+            // have to check if this point has been processed during "large search->findCluster"
             if (processed[ptr] == true) {
                 pointIdxRadiusSearch.erase(std::remove(pointIdxRadiusSearch.begin(), pointIdxRadiusSearch.end(), ptr),
                                            pointIdxRadiusSearch.end());
             } else {
                 if (treeFlann.radiusSearch(ptr, eps, temp_idx, temp_dist, 0) > min) {
-                    sortIdxDist(temp_idx, temp_dist); // 可能包含已经processed的点
+                    sortIdxDist(temp_idx, temp_dist); // it may have processed point
                     core_dist = temp_dist[min];
                     for (int i = 0; i < temp_idx.size(); i++) { // 自身也得改,可能是新的密度中心， i=0开始
                         float new_dist = std::max(core_dist, temp_dist[i]);
@@ -161,12 +162,13 @@ static bool write2file(const std::string& folderPath, const std::vector<int> &or
 
 int optics(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFlann, float eps, int min) {
 
-    //生成容器时，同时指定元素个数，就能够减少空间额外分配的次数
-//    std::vector<float> core_dists(cloud.size());
-//    std::vector<float> reach_dists(cloud.size());
+    // When generating a container, specifying the number of elements at the same time,
+    // that can reduce the number of additional space allocations.
+    // std::vector<float> core_dists(cloud.size());
+    // std::vector<float> reach_dists(cloud.size());
     std::vector<bool> processed(cloud.size(), false);
-    std::vector<int> ordered_sequence; // 按输出顺序排列
-    std::vector<float> ordered_distance(cloud.size(), 0.0); // 从0-n排列
+    std::vector<int> ordered_sequence; // sort by the sequence of output
+    std::vector<float> ordered_distance(cloud.size(), 0.0); // sort from 0 to n
 
     for (int i = 0; i < cloud.size(); i++) {
         if (i % 100 == 0) {
@@ -188,7 +190,7 @@ int optics(MyPointCloud &cloud, const pcl::KdTreeFLANN<PointT> &treeFlann, float
         result_distance.push_back(std::sqrt(ordered_distance[i]));
     }
 
-    // 赋值id
+    // give id
     int clusterNumber = extract_id(cloud, ordered_sequence, result_distance, 50);
 
     std::string folderPath = "C:\\Users\\tjut_\\Desktop\\20230818_VLP samples";

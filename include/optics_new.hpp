@@ -1,5 +1,6 @@
 //
 // Created by scaactk on 8/29/2023.
+// core function of OPTICS algorithm
 //
 
 #ifndef PCL_TEST_OPTICS_NEW_HPP
@@ -12,18 +13,20 @@
 #endif //PCL_TEST_OPTICS_NEW_HPP
 
 static inline void
+// sort points
 sortIdxDist_new(std::vector<int> &pointIdxRadiusSearch, std::vector<float> &pointRadiusSquaredDistance) {
-    // 创建一个索引向量，用于排序, 保持pointIdx和pointDist的同步
+    // create an index vector for sorting and keep pointIdx and pointDist in sync
     std::vector<int> idx(pointRadiusSquaredDistance.size());
     std::iota(idx.begin(), idx.end(), 0);
 
-    // 使用自定义的比较函数进行排序
+    // use a custom sorting methods
     std::sort(idx.begin(), idx.end(),
               [&pointRadiusSquaredDistance](int i1, int i2) {
-                  return pointRadiusSquaredDistance[i1] < pointRadiusSquaredDistance[i2]; // 升序
+                  // from small to large
+                  return pointRadiusSquaredDistance[i1] < pointRadiusSquaredDistance[i2];
               });
 
-    // 使用排序后的索引向量来获取排序后的结果
+    // Get the sorted result by sorted index
     std::vector<int> sortedIndices(pointIdxRadiusSearch.size());
     std::vector<float> sortedDistances(pointRadiusSquaredDistance.size());
     for (int i = 0; i < idx.size(); ++i) {
@@ -36,6 +39,7 @@ sortIdxDist_new(std::vector<int> &pointIdxRadiusSearch, std::vector<float> &poin
     }
 }
 
+// update by new distance value
 int update_new(std::vector<bool> &processed, std::vector<float> &reachability_distance, std::vector<int>& neighbour_idx,
            std::vector<float>& neighbour_dist, std::vector<int> &seeds_idx, int min) {
     float core_dist = neighbour_dist[min-1];
@@ -55,6 +59,7 @@ int update_new(std::vector<bool> &processed, std::vector<float> &reachability_di
     return seeds_idx.size();
 }
 
+// give the new id for each cluster
 static int extract_id_new(MyPointCloud &cloud, const std::vector<int> &ordered_sequence, const std::vector<float> &output_dist, float filter){
     int clusterID = 0;
     bool pre = true;

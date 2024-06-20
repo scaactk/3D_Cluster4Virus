@@ -1,5 +1,6 @@
 //
 // Created by scaactk on 8/14/2023.
+// give color to the point cloud by cluster result
 //
 
 #ifndef PCL_TEST_GIVE_COLOR_HPP
