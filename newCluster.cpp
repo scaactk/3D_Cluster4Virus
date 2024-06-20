@@ -15,8 +15,8 @@ int main(int argc, char **argv) {
     MyPointCloud::Ptr cloud(new MyPointCloud);
     MyPointCloud::Ptr cloud_filtered(new MyPointCloud);
 
-    std::string dir = R"(C:\Users\scaactk\Desktop\)";
-    std::string filename = "Red.pcd";
+    std::string dir = R"(D:\GithubRepository\3D_DBSCAN4Virus\)";
+    std::string filename = "testdata.pcd";
 
     // pcl is namespace, io is sub-namespace, loadPCDFile is function inside
     // *cloud 传参，& cloud接收 "通过引用传递指针"
@@ -73,11 +73,11 @@ int main(int argc, char **argv) {
 
 
         pcl::visualization::PCLVisualizer viewer("Cloud viewer"); //创建窗口
-        viewer.addCoordinateSystem(1000, std::get<0>(cloud_center), std::get<1>(cloud_center), std::get<2>(cloud_center));
+        viewer.addCoordinateSystem(1, std::get<0>(cloud_center), std::get<1>(cloud_center), std::get<2>(cloud_center));
         viewer.setBackgroundColor(0.1, 0.1, 0.1);
         // pos: the position of camera, view: center of view, up: view direction
-        viewer.setCameraPosition(std::get<0>(cloud_center), std::get<1>(cloud_center), 10000, std::get<0>(cloud_center),
-                                 std::get<1>(cloud_center), 1000, 0, 0, 0);
+        viewer.setCameraPosition(std::get<0>(cloud_center), std::get<1>(cloud_center), 10, std::get<0>(cloud_center),
+                                 std::get<1>(cloud_center), 30, 0, 0, 0);
         pcl::visualization::PointCloudColorHandlerRGBField<PointT> rgb(
                 cloud_filtered); //创建一个颜色处理对象PointCloudColorHandlerRGB，PCLVisualizer类利用这样的对象显示自定义颜色数据，在这个示例中，PointCloudColorHandlerRGB对象得到每个点云的RGB颜色字段
         viewer.addPointCloud<PointT>(cloud_filtered, "sample cloud");
