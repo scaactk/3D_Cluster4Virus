@@ -6,6 +6,7 @@
 #define PCL_TEST_STATISTICS_HPP
 
 #include "PCL_TEST_HEADER.h"
+#include <pcl/point_cloud.h>
 
 std::tuple<float, float, float> statistics(const MyPointCloud& cloud){
 

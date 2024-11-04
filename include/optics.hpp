@@ -6,6 +6,7 @@
 #define PCL_TEST_OPTICS_HPP
 
 #include "PCL_TEST_HEADER.h"
+#include <pcl/point_cloud.h>
 #include <vector>
 #include "iostream"
 

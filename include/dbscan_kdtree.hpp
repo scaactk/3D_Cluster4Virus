@@ -8,6 +8,7 @@
 
 
 #include "PCL_TEST_HEADER.h"
+#include <pcl/point_cloud.h>
 #include <cmath>
 #include "algorithm"
 #include "vector"

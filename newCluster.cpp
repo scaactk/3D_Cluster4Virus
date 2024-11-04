@@ -1,11 +1,15 @@
 //
 // Created by scaactk on 8/6/2023.
 //
-#include "include/dbscan.hpp"
-#include "include/dbscan_kdtree.hpp"
-#include "include/optics.hpp"
+#include <pcl/point_cloud.h>
+
+#include "include/PCL_TEST_HEADER.h"
 #include "include/statistics.hpp"
 #include "include/optics_new.hpp"
+#include "include/give_color.hpp"
+
+#include <fstream>
+
 
 int main(int argc, char **argv) {
     std::cout << "Begin reading PCL data" << std::endl;
@@ -16,8 +20,10 @@ int main(int argc, char **argv) {
     MyPointCloud::Ptr cloud_filtered(new MyPointCloud);
 
     // give the folder path of input and the input data name, it should be in the format of pcd
-    std::string dir = R"(D:\GithubRepository\3D_DBSCAN4Virus\)";
+    std::string dir = R"(C:/Users/tjut_/Desktop/3D_Cluster4Virus/)";
     std::string filename = "testdata.pcd";
+    std::string new_path = dir + filename;
+    std:: cout << "aaa" << new_path << std::endl;
 
     // pcl is namespace, io is sub-namespace, loadPCDFile is function inside
     // *cloud for passing parameters，& cloud for receive "Pointers passed by reference"
@@ -89,50 +95,5 @@ int main(int argc, char **argv) {
         std::cout << "input new filter value" << endl;
     }
 
-
-//    for (int i=0; i<cloud_filtered->size(); i++){
-//        if(cloud_filtered->points[i].clusterID==1){
-//            cout<<"color: "<< cloud_filtered->points[i].rgb<<endl;
-//        }
-//    }
-
     return 0;
-
-
-
-//------------------------ time test---------------//
-//    // create a PointCloud object
-//    MyPointCloud::Ptr cloud(new MyPointCloud);
-//
-//    // generate 100,000 point randomly
-//    std::random_device rd;
-//    std::mt19937 gen(rd()); // random engine
-//    int m = 10000;
-//    std::uniform_real_distribution<float> dis(0,10*m); //define an uniform distribution
-//
-//    const int num_points = 100*m;
-//    for (int i = 0; i < num_points; ++i)
-//    {
-//        PointT point;
-//        point.x = dis(gen);
-//        point.y = dis(gen);
-//        point.z = dis(gen);
-//        cloud->push_back(point);
-//    }
-//
-//
-//    auto start = std::chrono::high_resolution_clock::now();
-//    pcl::KdTreeFLANN<PointT> kdtree;
-//    kdtree.setInputCloud(cloud);
-//    dbscan_kdtree(*cloud,kdtree, 2 * m, 4);
-//    // get current time
-//    auto end = std::chrono::high_resolution_clock::now();
-//
-//    // calculate time difference
-//    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-//
-//    // Output the running time (microsecond)
-//    std::cout << "Time taken by function: " << duration.count() / 1000 << " microseconds" << std::endl;
-//
-//    return 0;
 }

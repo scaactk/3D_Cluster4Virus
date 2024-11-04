@@ -7,6 +7,7 @@
 #define PCL_TEST_GIVE_COLOR_HPP
 
 #include "PCL_TEST_HEADER.h"
+#include <pcl/point_cloud.h>
 #include <random>
 #endif //PCL_TEST_GIVE_COLOR_HPP
 
