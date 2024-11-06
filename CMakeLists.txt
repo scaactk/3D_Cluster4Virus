@@ -23,6 +23,7 @@ endif()
 find_package(PCL REQUIRED)
 #find_package(PCL REQUIRED COMPONENTS common io) //COMPONENTS: 这个关键字告诉 CMake 你想要加载 PCL 库的特定组件，而不是整个库
 find_package(FLANN CONFIG REQUIRED)
+find_package(CGAL REQUIRED) # CGAL库
 message("bbb")
 #message(STATUS "PCL DIR ${PCL_DIR}")
 
@@ -45,6 +46,7 @@ else()
 endif()
 
 target_link_libraries (${PROJECT_NAME} PRIVATE ${PCL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE CGAL::CGAL)
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 
 

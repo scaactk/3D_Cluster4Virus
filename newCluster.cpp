@@ -9,7 +9,7 @@
 #include "include/give_color.hpp"
 
 #include <fstream>
-
+#include "include/cluster_processor.hpp"
 
 int main(int argc, char **argv) {
     std::cout << "Begin reading PCL data" << std::endl;
@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     std::string dir = R"(C:/Users/tjut_/Desktop/3D_Cluster4Virus/)";
     std::string filename = "testdata.pcd";
     std::string new_path = dir + filename;
-    std:: cout << "aaa" << new_path << std::endl;
+    // std:: cout << "aaa" << new_path << std::endl;
 
     // pcl is namespace, io is sub-namespace, loadPCDFile is function inside
     // *cloud for passing parameters，& cloud for receive "Pointers passed by reference"
@@ -65,7 +65,10 @@ int main(int argc, char **argv) {
     float filter = 0;
     std::cout << "input filter" << endl;
     while(std::cin >> filter){
-        int clusterNumber = extract_id_new(*cloud_filtered, std::get<0>(order_result), std::get<1>(order_result), filter);
+        int clusterNumber = ClusterProcessor::process_clusters(*cloud_filtered, 
+                                                             std::get<0>(order_result), 
+                                                             std::get<1>(order_result), 
+                                                             filter);
         std::cout<< "Cluster NUmber is "<< clusterNumber << std::endl;
 
         std::cout << "Start giving color" << std::endl;
