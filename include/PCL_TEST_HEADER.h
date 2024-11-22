@@ -16,7 +16,7 @@
 struct EIGEN_ALIGN16 MyPoint {
     PCL_ADD_POINT4D;
     PCL_ADD_RGB;
-    int clusterID;
+    int clusterID =-1;
 
     MyPoint() : clusterID(0) {}
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

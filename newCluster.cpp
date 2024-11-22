@@ -11,7 +11,8 @@
 #include <fstream>
 #include "include/cluster_processor.hpp"
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv)
+{
     std::cout << "Begin reading PCL data" << std::endl;
 
     // "::Ptr" here is Type Alias
@@ -27,15 +28,16 @@ int main(int argc, char **argv) {
 
     // pcl is namespace, io is sub-namespace, loadPCDFile is function inside
     // *cloud for passing parameters，& cloud for receive "Pointers passed by reference"
-    if (pcl::io::loadPCDFile<PointT>((dir + filename), *cloud) == -1) {
+    if (pcl::io::loadPCDFile<PointT>((dir + filename), *cloud) == -1)
+    {
         // load file
-        PCL_ERROR ("Couldn't read PCD file \n");
+        PCL_ERROR("Couldn't read PCD file \n");
         return (-1);
     }
     cout << "there are " << cloud->points.size() << " points before filtering." << endl;
 
-//    pcl::PointXYZRGB minPt, maxPt;
-//    pcl::getMinMax3D(*cloud, minPt, maxPt);
+    //    pcl::PointXYZRGB minPt, maxPt;
+    //    pcl::getMinMax3D(*cloud, minPt, maxPt);
 
     // filter
     pcl::PassThrough<PointT> pass;
@@ -59,17 +61,19 @@ int main(int argc, char **argv) {
     std::cout << "Finish building kdtree" << std::endl;
 
 
-//    int clusterNumber = dbscan(*cloud_filtered, 100.0, 4);
-//    int clusterNumber = dbscan_kdtree(*cloud_filtered, kdtree, 100, 4);
+    //    int clusterNumber = dbscan(*cloud_filtered, 100.0, 4);
+    //    int clusterNumber = dbscan_kdtree(*cloud_filtered, kdtree, 100, 4);
     std::tuple<std::vector<int>, std::vector<float>> order_result = optics_new(*cloud_filtered, kdtree, 1000, 4, dir);
     float filter = 0;
     std::cout << "input filter" << endl;
-    while(std::cin >> filter){
-        int clusterNumber = ClusterProcessor::process_clusters(*cloud_filtered, 
-                                                             std::get<0>(order_result), 
-                                                             std::get<1>(order_result), 
-                                                             filter);
-        std::cout<< "Cluster NUmber is "<< clusterNumber << std::endl;
+    while (std::cin >> filter)
+    {
+        int clusterNumber = ClusterProcessor::process_clusters(*cloud_filtered,
+                                                               dir,
+                                                               std::get<0>(order_result),
+                                                               std::get<1>(order_result),
+                                                               filter);
+        std::cout << "Cluster NUmber is " << clusterNumber << std::endl;
 
         std::cout << "Start giving color" << std::endl;
         set_gray(*cloud_filtered);
