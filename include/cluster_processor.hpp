@@ -25,6 +25,7 @@ struct ClusterMetrics
     float density=0;
     PointT centroid;
     std::array<uint8_t, 3> color; // 存储cluster的颜色
+    std::vector<std::array<Point, 3>> alpha_shape_triangles; // 存储alpha shape的三角面片
 };
 
 class ClusterProcessor
@@ -48,6 +49,39 @@ public:
 
         // 保存结果
         save_results(cloud, folderPath, metrics);
+
+        // 创建可视化器
+        pcl::visualization::PCLVisualizer viewer("Alpha Shape Visualization");
+        viewer.setBackgroundColor(0.1, 0.1, 0.1);
+
+        // 添加原始点云
+        pcl::visualization::PointCloudColorHandlerRGBField<PointT> rgb(cloud.makeShared());
+        viewer.addPointCloud<PointT>(cloud.makeShared(), rgb, "cloud");
+        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "cloud");
+
+        // 为每个cluster添加alpha shape mesh
+        int mesh_id = 0;
+        for (const auto& metric : metrics)
+        {
+            for (const auto& triangle : metric.alpha_shape_triangles)
+            {
+                std::string id = "triangle_" + std::to_string(mesh_id++);
+                viewer.addPolygon<pcl::PointXYZ>(
+                    pcl::PointXYZ(triangle[0].x(), triangle[0].y(), triangle[0].z()),
+                    pcl::PointXYZ(triangle[1].x(), triangle[1].y(), triangle[1].z()),
+                    pcl::PointXYZ(triangle[2].x(), triangle[2].y(), triangle[2].z()),
+                    metric.color[0]/255.0, metric.color[1]/255.0, metric.color[2]/255.0,
+                    id
+                );
+                viewer.setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 0.5, id);
+            }
+        }
+
+        // 显示可视化结果
+        while (!viewer.wasStopped())
+        {
+            viewer.spinOnce(100);
+        }
 
         return clusterNumber;
     }
@@ -105,25 +139,37 @@ private:
     static std::vector<ClusterMetrics> calculate_metrics(const MyPointCloud& cloud)
     {
         std::vector<ClusterMetrics> metrics;
-        std::map<int, std::vector<int>> cluster_points; // use dictionary to storage each cluster
+        std::map<int, std::vector<PointT>> clusters_points; // use dictionary to storage each cluster
 
         // 按cluster ID分组
-        for (int i = 0; i < cloud.points.size(); i++)
+        for (auto& point : cloud.points)
         {
-            if (cloud.points[i].clusterID > 0)
+            if (point.clusterID >= 0)
             {
-                cluster_points[cloud.points[i].clusterID].push_back(i);
+                clusters_points[point.clusterID].push_back(point);
             }
         }
 
         // 计算每个cluster的指标
         // cluster set: {id:{points}}
-        for (const auto& cluster : cluster_points)
+        for (const auto& pair : clusters_points)
         {
             ClusterMetrics metric;
-            metric.cluster_id = cluster.first;
-            metric.point_count = cluster.second.size();
+            metric.cluster_id = pair.first;
+            metric.point_count = pair.second.size();
 
+            // 计算质心
+            metric.centroid.x = metric.centroid.y = metric.centroid.z = 0;
+            for (const auto& point : pair.second)
+            {
+                metric.centroid.x += point.x;
+                metric.centroid.y += point.y;
+                metric.centroid.z += point.z;
+            }
+            metric.centroid.x /= pair.second.size();
+            metric.centroid.y /= pair.second.size();
+            metric.centroid.z /= pair.second.size();
+            
             // 生成随机颜色
             std::random_device rd;
             std::mt19937 gen(rd());
@@ -134,44 +180,60 @@ private:
                 static_cast<uint8_t>(dis(gen))
             };
 
-            // 计算质心
-            metric.centroid.x = 0.0;
-            metric.centroid.y = 0.0;
-            metric.centroid.z = 0.0;
-            for (int idx : cluster.second)
-            {
-                metric.centroid.x += cloud.points[idx].x;
-                metric.centroid.y += cloud.points[idx].y;
-                metric.centroid.z += cloud.points[idx].z;
-            }
-            metric.centroid.x /= metric.point_count;
-            metric.centroid.y /= metric.point_count;
-            metric.centroid.z /= metric.point_count;
-
             // 计算体积（使用Alpha Shape）
             std::vector<Point> cgal_points;
-            for (int idx : cluster.second)
+            for (const auto& cgal_point : pair.second)
             {
                 cgal_points.push_back(Point(
-                    cloud.points[idx].x,
-                    cloud.points[idx].y,
-                    cloud.points[idx].z
+                    cgal_point.x,
+                    cgal_point.y,
+                    cgal_point.z
                 ));
             }
 
             Alpha_shape_3 as(cgal_points.begin(), cgal_points.end());
-            // float optimal_alpha = *as.find_optimal_alpha(1); // 容易出错
-            as.set_alpha(0.5);
+            auto optimal_alpha = as.find_optimal_alpha(1); // 容易出错
+            as.set_alpha(*optimal_alpha);
 
+            // 获取alpha shape的面片用于可视化
+            std::vector<Alpha_shape_3::Facet> facets;
+            as.get_alpha_shape_facets(std::back_inserter(facets), Alpha_shape_3::REGULAR);
+            
+            // 将面片添加到PCL可视化器
+            for (const auto& facet : facets)
+            {
+                // 确保面片方向一致
+                if (as.classify(facet.first) != Alpha_shape_3::EXTERIOR)
+                    facet = as.mirror_facet(facet);
+                
+                // 获取三角形的三个顶点
+                int indices[3] = {
+                    (facet.second + 1) % 4,
+                    (facet.second + 2) % 4,
+                    (facet.second + 3) % 4
+                };
+                if (facet.second % 2 == 0) 
+                    std::swap(indices[0], indices[1]);
+                    
+                // 存储三角形顶点坐标
+                metric.alpha_shape_triangles.push_back({
+                    facet.first->vertex(indices[0])->point(),
+                    facet.first->vertex(indices[1])->point(),
+                    facet.first->vertex(indices[2])->point()
+                });
+            }
+
+
+            // 计算体积
             double volume = 0.0;
-            for(Alpha_shape_3::Cell_iterator it = as.cells_begin(); it != as.cells_end(); ++it) {
-                Alpha_shape_3::Cell_handle ch = it;
-                if(as.classify(ch) == Alpha_shape_3::INTERIOR) {
+            for(Alpha_shape_3::Cell_iterator cit = as.finite_cells_begin(); cit != as.finite_cells_end(); ++cit) 
+            {
+                if(as.classify(cit) == Alpha_shape_3::INTERIOR) {
                     K::Tetrahedron_3 t = K().construct_tetrahedron_3_object()(
-                        ch->vertex(0)->point(),
-                        ch->vertex(1)->point(),
-                        ch->vertex(2)->point(),
-                        ch->vertex(3)->point()
+                        cit->vertex(0)->point(),
+                        cit->vertex(1)->point(),
+                        cit->vertex(2)->point(),
+                        cit->vertex(3)->point()
                     );
                     volume += t.volume();
                 }
