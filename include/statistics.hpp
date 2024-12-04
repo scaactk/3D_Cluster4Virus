@@ -8,7 +8,7 @@
 #include "PCL_TEST_HEADER.h"
 #include <pcl/point_cloud.h>
 
-std::tuple<float, float, float> statistics(const MyPointCloud& cloud){
+inline std::tuple<float, float, float> statistics(const MyPointCloud& cloud){
 
     // use ::max() to use static function, get min/max value in cpp definition
     // set initial value

@@ -68,36 +68,36 @@ int main(int argc, char** argv)
     std::cout << "input filter" << endl;
     while (std::cin >> filter)
     {
+        pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer ("Alpha Shape Viewer"));
         int clusterNumber = ClusterProcessor::process_clusters(*cloud_filtered,
                                                                dir,
+                                                               cloud_center,
                                                                std::get<0>(order_result),
                                                                std::get<1>(order_result),
-                                                               filter);
+                                                               filter,
+                                                               viewer,
+                                                               4);
         std::cout << "Cluster NUmber is " << clusterNumber << std::endl;
 
-        std::cout << "Start giving color" << std::endl;
-        set_gray(*cloud_filtered);
-        int coloredNumber = give_color(*cloud_filtered, clusterNumber);
-        std::cout << "Finish giving color" << std::endl;
+        // std::cout << "Start giving color" << std::endl;
+        // set_gray(*cloud_filtered);
+        // int coloredNumber = give_color(*cloud_filtered, clusterNumber);
+        // std::cout << "Finish giving color" << std::endl;
 
 
-        pcl::visualization::PCLVisualizer viewer("Cloud viewer"); // create a visualized window
-        viewer.addCoordinateSystem(1, std::get<0>(cloud_center), std::get<1>(cloud_center), std::get<2>(cloud_center));
-        viewer.setBackgroundColor(0.1, 0.1, 0.1);
-        // pos: the position of camera, view: center of view, up: view direction
-        viewer.setCameraPosition(std::get<0>(cloud_center), std::get<1>(cloud_center), 10, std::get<0>(cloud_center),
-                                 std::get<1>(cloud_center), 30, 0, 0, 0);
-
-        // create a color processing object: PointCloudColorHandlerRGB
-        // PCLVisualizer Class use such object to display custom color data
-        // In this case, PointCloudColorHandlerRGB object can get the RGB value of each point
-        pcl::visualization::PointCloudColorHandlerRGBField<PointT> rgb(cloud_filtered);
-        viewer.addPointCloud<PointT>(cloud_filtered, "sample cloud");
-        viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
-
-
-        while (!viewer.wasStopped())
-            viewer.spinOnce(100);
+        // pcl::visualization::PCLVisualizer viewer("Cloud viewer"); // create a visualized window
+        // viewer.addCoordinateSystem(1, std::get<0>(cloud_center), std::get<1>(cloud_center), std::get<2>(cloud_center));
+        // viewer.setBackgroundColor(0.1, 0.1, 0.1);
+        // // pos: the position of camera, view: center of view, up: view direction
+        // viewer.setCameraPosition(std::get<0>(cloud_center), std::get<1>(cloud_center), 10, std::get<0>(cloud_center),
+        //                          std::get<1>(cloud_center), 30, 0, 0, 0);
+        //
+        // // create a color processing object: PointCloudColorHandlerRGB
+        // // PCLVisualizer Class use such object to display custom color data
+        // // In this case, PointCloudColorHandlerRGB object can get the RGB value of each point
+        // pcl::visualization::PointCloudColorHandlerRGBField<PointT> rgb(cloud_filtered);
+        // viewer.addPointCloud<PointT>(cloud_filtered, "sample cloud");
+        // viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sample cloud");
 
         std::cout << "input new filter value" << endl;
     }
