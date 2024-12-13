@@ -7,6 +7,7 @@
 #include "include/statistics.hpp"
 #include "include/optics_new.hpp"
 #include "include/give_color.hpp"
+#include <filesystem>
 
 #include <fstream>
 #include "include/cluster_processor.hpp"
@@ -21,14 +22,14 @@ int main(int argc, char** argv)
     MyPointCloud::Ptr cloud_filtered(new MyPointCloud);
 
     // give the folder path of input and the input data name, it should be in the format of pcd
-    std::string dir = R"(C:/Users/tjut_/Desktop/3D_Cluster4Virus/)";
+    std::string dir = R"(C:/Users/tjut_/Desktop/3D_Cluster4Virus)";
     std::string filename = "testdata.pcd";
-    std::string new_path = dir + filename;
+    std::string new_path = dir + "/" + filename;
     // std:: cout << "aaa" << new_path << std::endl;
 
     // pcl is namespace, io is sub-namespace, loadPCDFile is function inside
     // *cloud for passing parameters，& cloud for receive "Pointers passed by reference"
-    if (pcl::io::loadPCDFile<PointT>((dir + filename), *cloud) == -1)
+    if (pcl::io::loadPCDFile<PointT>(new_path, *cloud) == -1)
     {
         // load file
         PCL_ERROR("Couldn't read PCD file \n");
@@ -60,24 +61,76 @@ int main(int argc, char** argv)
     kdtree.setInputCloud(cloud_filtered);
     std::cout << "Finish building kdtree" << std::endl;
 
+    // extract the short name of input file
+    std::string filename_no_ext = filename.substr(0, filename.find_last_of('.'));
+    std::cout<< "filename_no_ext: " << filename_no_ext<<std::endl;
 
-    //    int clusterNumber = dbscan(*cloud_filtered, 100.0, 4);
-    //    int clusterNumber = dbscan_kdtree(*cloud_filtered, kdtree, 100, 4);
-    std::tuple<std::vector<int>, std::vector<float>> order_result = optics_new(*cloud_filtered, kdtree, 1000, 4, dir);
+    // To storage ordered_id & reachable_distance
+    std::tuple<std::vector<int>, std::vector<float>> order_result;
+
+    if (std::filesystem::exists(dir + "/" + filename_no_ext + "_idx_point.csv")) {
+        std::cout << "OPTICS cache file already exists" << std::endl;
+        std::ifstream file(dir + "/" + filename_no_ext + "_idx_point.csv");
+        if (!file.is_open()) {
+            std::cerr << "Error opening OPTICS cache file" << std::endl;
+        }
+
+        // reconstruct a new empty cloud
+        MyPointCloud::Ptr new_cloud(new MyPointCloud);
+        new_cloud->points.clear();
+
+        // read data line by line
+        std::string line;
+        std::vector<int> ordered_sequence;
+        std::vector<float> output_dist;
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            std::string token;
+            std::vector<float> values;
+
+            while (std::getline(iss, token, ',')) { //将iss中读取的存入token中，按','分割
+                values.emplace_back(std::stof(token)); // std::stof, string to float
+            }
+
+            if (values.size() == 5) {
+                PointT new_point;
+                ordered_sequence.emplace_back(values[0]);
+                output_dist.emplace_back(values[1]);
+                new_point.x = values[2];
+                new_point.y = values[3];
+                new_point.z = values[4];
+
+                new_cloud->points.push_back(new_point);
+            }
+
+        }
+        new_cloud->width = new_cloud->points.size();
+        new_cloud->height = 1;
+        new_cloud->is_dense = true;
+        std::cout << "New cloud size: " << new_cloud->points.size() << std::endl;
+
+        order_result = std::make_tuple(ordered_sequence, output_dist);
+    }
+    else {
+        std::cout << "Start OPTICS algorithm." << std::endl;
+        order_result = optics_new(*cloud_filtered, kdtree, 1000, 4, dir, filename_no_ext);
+    }
+
     float filter = 0;
-    std::cout << "input filter" << endl;
+    std::cout << "input filter" << std::endl;
     while (std::cin >> filter)
     {
         pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer ("Alpha Shape Viewer"));
         int clusterNumber = ClusterProcessor::process_clusters(*cloud_filtered,
                                                                dir,
+                                                               filename_no_ext,
                                                                cloud_center,
                                                                std::get<0>(order_result),
                                                                std::get<1>(order_result),
                                                                filter,
                                                                viewer,
                                                                4);
-        std::cout << "Cluster NUmber is " << clusterNumber << std::endl;
+        std::cout << "Cluster Number is " << clusterNumber << std::endl;
 
         // std::cout << "Start giving color" << std::endl;
         // set_gray(*cloud_filtered);

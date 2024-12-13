@@ -1,85 +1,78 @@
-//
-// Created by tjut_ on 8/25/2023.
-// this code is use for convert .3dlp data from SMLM to .pcd format that can be used in PointCloud
-//
 #include <string>
 #include <vector>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 #include "include/PCL_TEST_HEADER.h"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
-// path for input, custom define
-std::string folderPath = "C:\\Users\\scaactk\\Desktop\\20231123";
+std::string folderPath = R"(C:/Users/tjut_/Desktop/20231123)";
 
 void handle_file(const fs::path& path)
 {
-    // Step 1: First pass over the file to count lines (i.e., data points)
-    std::ifstream infile_count_pass(path.string());
-    std::string line;
-    int point_count = 0;
-    while (std::getline(infile_count_pass, line)){
-        ++point_count;
-    }
-    infile_count_pass.close();
-
-    // Step 2: Then, actually process data
-    std::ifstream infile(path.string());
-    std::ofstream outfile(path.string().substr(0, (path.string().length() - 5)) + ".pcd", ios::out);
-    if(!outfile.is_open())
-    {
-        std::cerr << "Failed to open output file at: " << path.stem().string() + ".pcd" << std::endl;
+    // Step 1: First pass over the file to count lines
+    std::ifstream infile_count_pass(path);
+    if (!infile_count_pass) {
+        std::cerr << "Failed to open input file: " << path << std::endl;
         return;
     }
-    std::cout << path.stem().string() + ".pcd" << endl;
+    int point_count = std::count(std::istreambuf_iterator<char>(infile_count_pass),
+                                 std::istreambuf_iterator<char>(), '\n');
+    infile_count_pass.close();
 
+    // Step 2: Process data
+    std::ifstream infile(path);
+    fs::path outpath = path;
+    outpath.replace_extension(".pcd");
+    std::ofstream outfile(outpath);
+    if(!outfile.is_open())
+    {
+        std::cerr << "Failed to open output file: " << outpath << std::endl;
+        return;
+    }
+    std::cout << "Processing: " << outpath << std::endl;
 
-    // Write the PCD file's header information
+    // Write PCD header
     outfile << "# .PCD v.7 - Point Cloud Data file format\n"
             << "VERSION .7\n"
             << "FIELDS x y z\n"
             << "SIZE 4 4 4\n"
             << "TYPE F F F\n"
             << "COUNT 1 1 1\n"
-            << "WIDTH " << point_count << "\n"  // use the count from the first pass
+            << "WIDTH " << point_count << "\n"
             << "HEIGHT 1\n"
             << "VIEWPOINT 0 0 0 1 0 0 0\n"
-            << "POINTS " << point_count << "\n"  // use the count from the first pass
+            << "POINTS " << point_count << "\n"
             << "DATA ascii\n";
 
+    std::string line;
     float x, y, z;
     while (std::getline(infile, line))
     {
         std::istringstream iss(line);
         if (iss >> x >> y >> z)
         {
-            // Separate the data by tab and write the point cloud to new pcd file
-            outfile << x << "\t" << y << "\t" << z << "\n";
-           // std::cout << x <<endl;
+            outfile << x << " " << y << " " << z << "\n";
         }
     }
-
-    infile.close();
-    outfile.close();
-
 }
 
 int main()
 {
     fs::path p(folderPath);
-    fs::recursive_directory_iterator begin(p), end;
-    std::vector<fs::directory_entry> v(begin, end);
+    if (!fs::exists(p) || !fs::is_directory(p)) {
+        std::cerr << "Error: " << folderPath << " is not a valid directory." << std::endl;
+        return 1;
+    }
 
-    //iterate through all files
-    for (auto& f : v)
+    for (const auto& entry : fs::recursive_directory_iterator(p))
     {
-        // check the extension of file
-        if (f.path().extension() == ".3dlp")
+        if (fs::is_regular_file(entry) && entry.path().extension() == ".3dlp")
         {
-            std::cout<<f.path()<<std::endl;
-            handle_file(f.path());
+            std::cout << "Processing file: " << entry.path() << std::endl;
+            handle_file(entry.path());
         }
     }
 
