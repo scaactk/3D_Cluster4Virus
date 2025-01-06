@@ -171,9 +171,11 @@ private:
 
             // 计算体积
             double volume = 0.0;
+            std::cout << "Cluster ID: " << fst << std::endl;
             std::vector<Alpha_shape_3::Cell_handle> cells;
             Alpha_shape_3::NT alpha_solid = as_ptr->find_alpha_solid();
-            as_ptr->set_alpha(alpha_solid*2);
+            // as_ptr->set_alpha(alpha_solid*2);
+            as_ptr->set_alpha(100);
 
             if (as_ptr->number_of_solid_components() == 1) {
                 std::cout << "Alpha value for single solid component: " << alpha_solid << std::endl;
@@ -249,13 +251,27 @@ private:
         }
 
         // 给每个cluster的点着色
-        for (const auto& metric : metrics) {
-            for (auto& point : cloud.points) {
-                if (point.clusterID == metric.cluster_id) {
-                    point.r = metric.color[0];
-                    point.g = metric.color[1];
-                    point.b = metric.color[2];
-                }
+        // for (const auto& metric : metrics) {
+        //     for (auto& point : cloud.points) {
+        //         if (point.clusterID == metric.cluster_id) {
+        //             point.r = metric.color[0];
+        //             point.g = metric.color[1];
+        //             point.b = metric.color[2];
+        //         }
+        //     }
+        // }
+
+        /** test the color of only one cluster **/
+        for (auto& point : cloud.points) {
+            if (point.clusterID ==95) {
+                point.r = 255;
+                point.g = 0;
+                point.b = 0;
+            }
+            if (point.clusterID ==1) {
+                point.r = 0;
+                point.g = 255;
+                point.b = 0;
             }
         }
     }
@@ -316,7 +332,7 @@ private:
                 cluster_id);
 
             // 可选：设置透明度
-            viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 0.5, cluster_id);
+            viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 0.1, cluster_id);
         }
 
 
@@ -324,7 +340,7 @@ private:
         // 设置背景颜色和相机位置
         viewer->addCoordinateSystem(1, std::get<0>(cloud_center), std::get<1>(cloud_center), std::get<2>(cloud_center));
         viewer->setBackgroundColor(0.1, 0.1, 0.1);
-        viewer->setCameraPosition(std::get<0>(cloud_center), std::get<1>(cloud_center), 10, std::get<0>(cloud_center),
+        viewer->setCameraPosition(std::get<0>(cloud_center), std::get<1>(cloud_center), std::get<2>(cloud_center), std::get<0>(cloud_center),
                                   std::get<1>(cloud_center), 30, 0, 0, 0);
 
         while (!viewer->wasStopped())
