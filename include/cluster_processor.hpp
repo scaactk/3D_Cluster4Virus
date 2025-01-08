@@ -24,12 +24,12 @@ struct ClusterMetrics
 {
     int cluster_id = -1;
     int point_count = 0;
+    std::vector<int> pointsID_set;
     float volume = 0;
     float density = 0;
     PointT centroid;
     std::array<uint8_t, 3> color; // 存储cluster的颜色
     std::vector<std::array<Point, 3>> alpha_shape_triangles; // 存储alpha shape的三角面片
-    // Alpha_shape_3 alpha_shape;
 };
 
 class ClusterProcessor
@@ -47,7 +47,7 @@ public:
         // 给点分配cluster ID
         const int clusterNumber = assign_cluster_ids(cloud, ordered_sequence, output_dist, filter,
                                                      minPointsFormingCluster);
-        std::cout << "clusterNumber: " << clusterNumber << std::endl;
+        std::cout << "clusterNumber: (Start from 0) " << clusterNumber+1 << std::endl;
 
         // 只能通过共享指针的方式使得方法之间可以共享alphaShapes
         std::vector<std::shared_ptr<Alpha_shape_3>> alphaShapes;
@@ -55,7 +55,7 @@ public:
         auto metrics = calculate_metrics(cloud, alphaShapes);
 
         // 根据metrics中存储的颜色给点着色
-        apply_colors(cloud, metrics);
+        apply_colors(cloud, cloud_center, metrics);
 
         // 可视化 facet
         visualizeAlphaShapes(cloud, cloud_center, metrics, viewer);
@@ -63,7 +63,7 @@ public:
         // 保存结果
         save_results(cloud, folderPath, metrics);
 
-        return clusterNumber;
+        return clusterNumber+1;
     }
 
     static bool load_processed_cloud(MyPointCloud& cloud, const std::string& filepath) {
@@ -78,9 +78,9 @@ private:
                                   const std::vector<int>& ordered_sequence,
                                   const std::vector<float>& output_dist,
                                   float filter,
-                                  int minPointsFormingCluster) // did not filter the cluster less than 3 points
+                                  int minPointsFormingCluster) // did not filter the cluster less than 4 points
     {
-        int clusterID_Index = 0;
+        int clusterID_Index = -1;
         bool pre = true;
         bool cur = true;
         std::vector<int> cur_cluster;
@@ -97,10 +97,13 @@ private:
             else {
                 cur = false;
                 cloud.points[ordered_sequence[i]].clusterID = -1;
+                if (clusterID_Index == 77) {
+                    std::cout << "Hello" << std::endl;
+                };
                 if (cur_cluster.size() >= 1 && cur_cluster.size() < minPointsFormingCluster) {
                     //cluster包含符合要求的点，但是数量不足以计算体积
                     for (auto j : cur_cluster) {
-                        cloud.points[ordered_sequence[j]].clusterID = -1; // 数量不足，全部设为noise
+                        cloud.points[j].clusterID = -1; // 数量不足，全部设为noise
                     }
                     clusterID_Index -= 1; //回退cluster id
                 }
@@ -108,6 +111,7 @@ private:
                 pre = cur;
             }
         }
+        std::cout << "clusterID_MAX: " << clusterID_Index << std::endl;
         return clusterID_Index;
     }
 
@@ -125,14 +129,15 @@ private:
 
         // 计算每个cluster的指标
         // cluster set: {id:{points}}
-        int temp_index = 1;
         for (const auto& [fst, snd] : clusters_points) {
-            std::cout << temp_index << std::endl;
-            temp_index += 1;
+            // std::cout << fst << std::endl;
 
             ClusterMetrics metric;
             metric.cluster_id = fst;
             metric.point_count = snd.size();
+            for (int i = 0; i < snd.size(); i++) {
+                metric.pointsID_set.push_back(snd[i].pointID);
+            }
 
             // 计算质心
             metric.centroid.x = metric.centroid.y = metric.centroid.z = 0;
@@ -174,8 +179,8 @@ private:
             std::cout << "Cluster ID: " << fst << std::endl;
             std::vector<Alpha_shape_3::Cell_handle> cells;
             Alpha_shape_3::NT alpha_solid = as_ptr->find_alpha_solid();
-            // as_ptr->set_alpha(alpha_solid*2);
-            as_ptr->set_alpha(100);
+            as_ptr->set_alpha(alpha_solid);
+            //as_ptr->set_alpha(100);
 
             if (as_ptr->number_of_solid_components() == 1) {
                 std::cout << "Alpha value for single solid component: " << alpha_solid << std::endl;
@@ -233,7 +238,7 @@ private:
                     }
                 }
             }
-            // return final metrics
+            //return final metrics
             metrics.push_back(metric);
         }
 
@@ -241,7 +246,7 @@ private:
         return metrics;
     }
 
-    static void apply_colors(MyPointCloud& cloud, const std::vector<ClusterMetrics>& metrics) {
+    static void apply_colors(MyPointCloud& cloud, const std::tuple<float, float, float>& cloud_center, const std::vector<ClusterMetrics>& metrics) {
         // 先将所有点设为灰色（噪声点）
         for (auto& point : cloud.points) {
             if (point.clusterID < 0) {
@@ -250,30 +255,54 @@ private:
             }
         }
 
-        // 给每个cluster的点着色
-        // for (const auto& metric : metrics) {
-        //     for (auto& point : cloud.points) {
-        //         if (point.clusterID == metric.cluster_id) {
-        //             point.r = metric.color[0];
-        //             point.g = metric.color[1];
-        //             point.b = metric.color[2];
-        //         }
-        //     }
-        // }
+        //给每个cluster的点着色
+        for (const auto& metric : metrics) {
+            for (auto& point : cloud.points) {
+                if (point.clusterID == metric.cluster_id) {
+                    point.r = metric.color[0];
+                    point.g = metric.color[1];
+                    point.b = metric.color[2];
+                    // point.r = 255;
+                    // point.g = 255;
+                    // point.b = 255;
+                }
+            }
+        }
 
         /** test the color of only one cluster **/
         for (auto& point : cloud.points) {
-            if (point.clusterID ==95) {
+            if (point.clusterID ==3) {
                 point.r = 255;
                 point.g = 0;
                 point.b = 0;
             }
-            if (point.clusterID ==1) {
+            if (point.clusterID ==4) {
                 point.r = 0;
                 point.g = 255;
                 point.b = 0;
             }
+            if (point.clusterID ==5) {
+                point.r = 0;
+                point.g = 0;
+                point.b = 255;
+            }
         }
+
+        // pcl::visualization::PCLVisualizer viewer("Cloud viewer"); // create a visualized window
+        // viewer.addCoordinateSystem(1, std::get<0>(cloud_center), std::get<1>(cloud_center), std::get<2>(cloud_center));
+        // viewer.setBackgroundColor(0.1, 0.1, 0.1);
+        // // pos: the position of camera, view: center of view, up: view direction
+        // viewer.setCameraPosition(std::get<0>(cloud_center), std::get<1>(cloud_center), std::get<2>(cloud_center), std::get<0>(cloud_center),
+        //                          std::get<1>(cloud_center), 30, 0, 0, 0);
+        //
+        // // create a color processing object: PointCloudColorHandlerRGB
+        // // PCLVisualizer Class use such object to display custom color data
+        // // In this case, PointCloudColorHandlerRGB object can get the RGB value of each point
+        // viewer.addPointCloud<PointT>(std::make_shared<MyPointCloud>(cloud), "sample cloud");
+        // viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, "sample cloud");
+        //
+        // while (!viewer.wasStopped())
+        //     viewer.spinOnce(100);
     }
 
     static void visualizeAlphaShapes(const MyPointCloud& cloud,

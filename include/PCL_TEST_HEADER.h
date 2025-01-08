@@ -16,6 +16,7 @@
 struct EIGEN_ALIGN16 MyPoint {
     PCL_ADD_POINT4D;
     PCL_ADD_RGB;
+    int pointID;
     int clusterID =-1;
 
     MyPoint() : clusterID(0) {}
@@ -27,6 +28,7 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(MyPoint,
                                   (float, y, y)
                                   (float, z, z)
                                   (float, rgb, rgb)
+                                  (int, pointID, pointID)
                                   (int, clusterID, clusterID)
                                   )
 

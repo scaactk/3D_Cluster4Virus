@@ -23,7 +23,7 @@ int main(int argc, char** argv)
 
     // give the folder path of input and the input data name, it should be in the format of pcd
     std::string dir = R"(C:/Users/tjut_/Desktop/3D_Cluster4Virus)";
-    std::string filename = "testdata.pcd";
+    std::string filename = "Red.pcd";
     std::string new_path = dir + "/" + filename;
     // std:: cout << "aaa" << new_path << std::endl;
 
@@ -37,8 +37,10 @@ int main(int argc, char** argv)
     }
     cout << "there are " << cloud->points.size() << " points before filtering." << endl;
 
-    //    pcl::PointXYZRGB minPt, maxPt;
-    //    pcl::getMinMax3D(*cloud, minPt, maxPt);
+    // 3D to 2D for test
+    // for (int i = 0; i < cloud->points.size(); i++) {
+    //     cloud->points[i].z = 0;
+    // }
 
     // filter
     pcl::PassThrough<PointT> pass;
@@ -52,7 +54,13 @@ int main(int argc, char** argv)
     // pass.setNegative(true); // keep reversed points
     pass.filter(*cloud_filtered);
 
+
     std::cout << "Filtered point cloud size: " << cloud_filtered->size() << " data points." << std::endl;
+
+    // give pointID to filtered points
+    for (int i = 0; i < cloud_filtered->points.size(); i++) {
+        cloud_filtered->points[i].pointID = i;
+    }
 
     std::tuple<float, float, float> cloud_center = statistics(*cloud_filtered);
 
@@ -95,6 +103,7 @@ int main(int argc, char** argv)
             if (values.size() == 5) {
                 PointT new_point;
                 ordered_sequence.emplace_back(values[0]);
+                new_point.pointID = values[0];
                 output_dist.emplace_back(values[1]);
                 new_point.x = values[2];
                 new_point.y = values[3];
