@@ -270,23 +270,23 @@ private:
         }
 
         /** test the color of only one cluster **/
-        for (auto& point : cloud.points) {
-            if (point.clusterID ==3) {
-                point.r = 255;
-                point.g = 0;
-                point.b = 0;
-            }
-            if (point.clusterID ==4) {
-                point.r = 0;
-                point.g = 255;
-                point.b = 0;
-            }
-            if (point.clusterID ==5) {
-                point.r = 0;
-                point.g = 0;
-                point.b = 255;
-            }
-        }
+        // for (auto& point : cloud.points) {
+        //     if (point.clusterID ==3) {
+        //         point.r = 255;
+        //         point.g = 0;
+        //         point.b = 0;
+        //     }
+        //     if (point.clusterID ==4) {
+        //         point.r = 0;
+        //         point.g = 255;
+        //         point.b = 0;
+        //     }
+        //     if (point.clusterID ==5) {
+        //         point.r = 0;
+        //         point.g = 0;
+        //         point.b = 255;
+        //     }
+        // }
 
         // pcl::visualization::PCLVisualizer viewer("Cloud viewer"); // create a visualized window
         // viewer.addCoordinateSystem(1, std::get<0>(cloud_center), std::get<1>(cloud_center), std::get<2>(cloud_center));
